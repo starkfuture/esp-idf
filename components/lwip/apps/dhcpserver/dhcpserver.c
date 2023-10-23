@@ -352,6 +352,8 @@ static u8_t *add_offer_options(u8_t *optptr)
         }
     }
 
+    // FDS - if dhcps_dns is true and dns_server = 255.255.255.255 do not pass option DHCP_OPTION_DNS_SERVER
+    /*
     *optptr++ = DHCP_OPTION_DNS_SERVER;
     *optptr++ = 4;
     if (dhcps_dns_enabled(dhcps_dns)) {
@@ -365,6 +367,25 @@ static u8_t *add_offer_options(u8_t *optptr)
         *optptr++ = ip4_addr3(&ipadd);
         *optptr++ = ip4_addr4(&ipadd);
     }
+	*/
+	if (dhcps_dns_enabled(dhcps_dns)) {
+		if (dns_server.addr != 0xFFFFFFFF) {
+			*optptr++ = DHCP_OPTION_DNS_SERVER;
+			*optptr++ = 4;
+		    *optptr++ = ip4_addr1(&dns_server);
+		    *optptr++ = ip4_addr2(&dns_server);
+		    *optptr++ = ip4_addr3(&dns_server);
+		    *optptr++ = ip4_addr4(&dns_server);
+		}
+	}
+	else {
+		*optptr++ = DHCP_OPTION_DNS_SERVER;
+		*optptr++ = 4;
+        *optptr++ = ip4_addr1(&ipadd);
+        *optptr++ = ip4_addr2(&ipadd);
+        *optptr++ = ip4_addr3(&ipadd);
+        *optptr++ = ip4_addr4(&ipadd);
+	}
 
     ip4_addr_t broadcast_addr = { .addr = (ipadd.addr & s_dhcps_mask.addr) | ~s_dhcps_mask.addr };
     *optptr++ = DHCP_OPTION_BROADCAST_ADDRESS;

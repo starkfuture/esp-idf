@@ -35,8 +35,18 @@ const esp_netif_inherent_config_t _g_esp_netif_inherent_slip_config = ESP_NETIF_
 
 const esp_netif_inherent_config_t _g_esp_netif_inherent_openthread_config = ESP_NETIF_INHERENT_DEFAULT_OPENTHREAD();
 
+/*
+FDS -- default configuration
 const esp_netif_ip_info_t _g_esp_netif_soft_ap_ip = {
         .ip = { .addr = ESP_IP4TOADDR( 192, 168, 4, 1) },
         .gw = { .addr = ESP_IP4TOADDR( 192, 168, 4, 1) },
+        .netmask = { .addr = ESP_IP4TOADDR( 255, 255, 255, 0) },
+};
+*/
+
+// FDS -- my configuration
+const esp_netif_ip_info_t _g_esp_netif_soft_ap_ip = {
+        .ip = { .addr = ESP_IP4TOADDR( 192, 168, 167, 1) },
+        .gw = { .addr = ESP_IP4TOADDR( 192, 168, 167, 1) },
         .netmask = { .addr = ESP_IP4TOADDR( 255, 255, 255, 0) },
 };
