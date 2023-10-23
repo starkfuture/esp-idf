@@ -69,6 +69,8 @@ static const UINT8 rfc_crctable[] = {
     0xB4, 0x25, 0x57, 0xC6, 0xB3, 0x22, 0x50, 0xC1,  0xBA, 0x2B, 0x59, 0xC8, 0xBD, 0x2C, 0x5E, 0xCF
 };
 
+// FDS - bluetooth flow control hack
+volatile int rfc_dec_credit_flow_control = 1;
 
 /*******************************************************************************
 **
@@ -456,6 +458,7 @@ void rfc_inc_credit (tPORT *p_port, UINT8 credit)
 ** Returns          void
 **
 *******************************************************************************/
+/*
 void rfc_dec_credit (tPORT *p_port)
 {
     if (p_port->rfc.p_mcb->flow == PORT_FC_CREDIT) {
@@ -468,7 +471,19 @@ void rfc_dec_credit (tPORT *p_port)
         }
     }
 }
-
+*/
+void rfc_dec_credit (tPORT *p_port)
+{
+    if (p_port->rfc.p_mcb->flow == PORT_FC_CREDIT) {
+        if (p_port->credit_tx > 0) {
+            p_port->credit_tx--;
+        }
+		// FDS -- Markus Becker hack to disable flow control
+        if (p_port->credit_tx == 0) {
+            if (rfc_dec_credit_flow_control) p_port->tx.peer_fc = TRUE;
+        }
+    }
+}
 
 /*******************************************************************************
 **
