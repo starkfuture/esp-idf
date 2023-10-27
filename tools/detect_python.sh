@@ -6,18 +6,20 @@
 # 1. The script will set variable ESP_PYTHON to "python" if it is of version 3.
 # 2. Otherwise, "python3" will be exported if it exists.
 # 3. The script will fall-back to "python" as the last resort and fail if it doesn't exist.
+if [[ ! -z "$ESP_CUSTOM_PYTHON" ]]; then
+    ESP_PYTHON=$ESP_CUSTOM_PYTHON
+else
+    ESP_PYTHON=python
+	for p_cmd in python python3
+	do
+	    echo "Checking \"$p_cmd\" ..."
 
-ESP_PYTHON=python
-
-for p_cmd in python python3
-do
-    echo "Checking \"$p_cmd\" ..."
-
-    if [ "$($p_cmd -c "import sys; print(sys.version_info.major)")" = 3 ]; then
-        ESP_PYTHON=$p_cmd
-        break
-    fi
-done
+	    if [ "$($p_cmd -c "import sys; print(sys.version_info.major)")" = 3 ]; then
+	        ESP_PYTHON=$p_cmd
+	        break
+	    fi
+	done
+fi
 
 $ESP_PYTHON --version || { echo "\"$ESP_PYTHON\" is not installed! Please see the documentation for how to install it."; exit 1; }
 
