@@ -311,6 +311,30 @@ void esp_netif_action_remove_ip6_address(void *esp_netif, esp_event_base_t base,
 esp_err_t esp_netif_set_mac(esp_netif_t *esp_netif, uint8_t mac[]);
 
 /**
+ * @brief Get the MTU for the interface instance
+
+ * @param[in]  esp_netif Handle to esp-netif instance
+ * @param[out]  mtu Resultant MTU for the related network interface
+ * @return
+ *         - ESP_OK - success
+ *         - ESP_ERR_ESP_NETIF_IF_NOT_READY - interface status error
+ *         - ESP_ERR_NOT_SUPPORTED - mac not supported on this interface
+ */
+esp_err_t esp_netif_get_mac(esp_netif_t *esp_netif, uint8_t mac[]);
+
+/**
+ * @brief Set the mtu for the interface instance
+
+ * @param[in]  esp_netif Handle to esp-netif instance
+ * @param[in]  mtu Desired mtu for the related network interface
+ * @return
+ *         - ESP_OK - success
+ *         - ESP_ERR_ESP_NETIF_IF_NOT_READY - interface status error
+ *         - ESP_ERR_NOT_SUPPORTED - mac not supported on this interface
+ */
+esp_err_t esp_netif_set_mtu(esp_netif_t *esp_netif, uint16_t mtu);
+
+/**
  * @brief Get the mac address for the interface instance
 
  * @param[in]  esp_netif Handle to esp-netif instance
@@ -320,7 +344,8 @@ esp_err_t esp_netif_set_mac(esp_netif_t *esp_netif, uint8_t mac[]);
  *         - ESP_ERR_ESP_NETIF_IF_NOT_READY - interface status error
  *         - ESP_ERR_NOT_SUPPORTED - mac not supported on this interface
  */
-esp_err_t esp_netif_get_mac(esp_netif_t *esp_netif, uint8_t mac[]);
+esp_err_t esp_netif_get_mtu(esp_netif_t *esp_netif, uint16_t* mtu);
+
 
 /**
  * @brief  Set the hostname of an interface
@@ -915,3 +940,4 @@ void esp_netif_netstack_buf_free(void *netstack_buf);
 #endif
 
 #endif /*  _ESP_NETIF_H_ */
+

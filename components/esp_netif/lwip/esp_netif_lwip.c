@@ -658,6 +658,31 @@ esp_err_t esp_netif_get_mac(esp_netif_t *esp_netif, uint8_t mac[])
     return ESP_OK;
 }
 
+esp_err_t esp_netif_set_mtu(esp_netif_t *esp_netif, uint16_t mtu)
+{
+    if (esp_netif == NULL || esp_netif->lwip_netif == NULL) {
+        return ESP_ERR_ESP_NETIF_IF_NOT_READY;
+    }
+    if (_IS_NETIF_ANY_POINT2POINT_TYPE(esp_netif)) {
+        return ESP_ERR_NOT_SUPPORTED;
+    }
+    esp_netif->lwip_netif->mtu = mtu;
+    return ESP_OK;
+}
+esp_err_t esp_netif_get_mtu(esp_netif_t *esp_netif, uint16_t* mtu)
+{
+    if (esp_netif == NULL || esp_netif->lwip_netif == NULL) {
+        return ESP_ERR_ESP_NETIF_IF_NOT_READY;
+    }
+    if (_IS_NETIF_ANY_POINT2POINT_TYPE(esp_netif)) {
+        return ESP_ERR_NOT_SUPPORTED;
+    }
+    if (mtu!=NULL){
+        *mtu = esp_netif->lwip_netif->mtu;
+    }
+    return ESP_OK;
+}
+
 #if ESP_DHCPS
 static void esp_netif_dhcps_cb(u8_t client_ip[4])
 {
