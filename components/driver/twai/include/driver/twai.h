@@ -546,6 +546,12 @@ esp_err_t twai_clear_receive_queue(void);
  */
 esp_err_t twai_clear_receive_queue_v2(twai_handle_t handle);
 
+
+
+
+ void twai_driver_reset(void);
+
+
 #ifdef __cplusplus
 }
 #endif

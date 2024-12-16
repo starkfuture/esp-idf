@@ -48,6 +48,7 @@ extern "C" {
 #define TWAI_LL_INTR_RI         (0x1 << 0)      //Receive Interrupt
 #define TWAI_LL_INTR_TI         (0x1 << 1)      //Transmit Interrupt
 #define TWAI_LL_INTR_EI         (0x1 << 2)      //Error Interrupt
+#define TWAI_LL_INTR_OV         (0x1 << 3)      //Overrun Interrupt
 //Data overrun interrupt not supported in SW due to HW peculiarities
 #define TWAI_LL_INTR_EPI        (0x1 << 5)      //Error Passive Interrupt
 #define TWAI_LL_INTR_ALI        (0x1 << 6)      //Arbitration Lost Interrupt
@@ -722,12 +723,21 @@ static inline void twai_ll_set_tx_buffer(twai_dev_t *hw, twai_ll_frame_buffer_t 
  *
  * @note Call twai_ll_parse_frame_buffer() to parse the formatted frame
  */
+
+    extern volatile int my_error;
+    extern volatile uint32_t my_msg_count;
+    extern volatile uint32_t my_msg_times;
+    extern volatile uint32_t my_tx_error;
 __attribute__((always_inline))
 static inline void twai_ll_get_rx_buffer(twai_dev_t *hw, twai_ll_frame_buffer_t *rx_frame)
 {
+
     //Copy RX buffer registers into frame
     for (int i = 0; i < 13; i++) {
         rx_frame->bytes[i] =  HAL_FORCE_READ_U32_REG_FIELD(hw->tx_rx_buffer[i], byte);
+    }
+    if (rx_frame->dlc>8) {
+        my_error=my_msg_count;
     }
 }
 
@@ -844,6 +854,12 @@ static inline uint32_t twai_ll_get_rx_msg_count(twai_dev_t *hw)
 {
     return hw->rx_message_counter_reg.val;
 }
+    __attribute__((always_inline))
+static inline uint32_t twai_ll_get_rx_msg_count_real(twai_dev_t *hw)
+{
+    return hw->rx_message_counter_reg.rmc;
+}
+
 
 /* ------------------------- Clock Divider Register ------------------------- */
 

@@ -117,9 +117,13 @@ static void twai_alert_handler(twai_obj_t *p_twai_obj, uint32_t alert_code, int 
 #endif  //CONFIG_TWAI_ISR_IN_IRAM
     }
 }
+volatile uint32_t my_msg_count=0;
+volatile uint32_t my_msg_times=0;
+volatile uint32_t my_tx_error=0;
 
 static inline void twai_handle_rx_buffer_frames(twai_obj_t *p_twai_obj, BaseType_t *task_woken, int *alert_req)
 {
+    my_msg_times++;
 #ifdef SOC_TWAI_SUPPORTS_RX_STATUS
     uint32_t msg_count = twai_hal_get_rx_msg_count(&p_twai_obj->hal);
 
@@ -141,10 +145,30 @@ static inline void twai_handle_rx_buffer_frames(twai_obj_t *p_twai_obj, BaseType
     }
 #else   //SOC_TWAI_SUPPORTS_RX_STATUS
     uint32_t msg_count = twai_hal_get_rx_msg_count(&p_twai_obj->hal);
+
     bool overrun = false;
     //Clear all valid RX frames
+
+// #ifdef SOC_TWAI_SUPPORTS_RX_STATUS
+//     if (twai_ll_get_status(hal_ctx->dev) & TWAI_LL_STATUS_MS) {
+//         //Release the buffer for this particular overrun frame
+//         msg_count=0;
+//         overrun=true;
+//     }
+// #else
+     if (msg_count>4) {
+//         //No need to release RX buffer as we'll be releaseing all RX frames in continuously later
+         msg_count=0;
+         overrun=true;
+     }
+// #endif
     for (int i = 0; i < msg_count; i++) {
         twai_hal_frame_t frame;
+
+        if ((twai_ll_get_status(p_twai_obj->hal.dev) & TWAI_LL_STATUS_RBS) ==0) {
+            // There's no new message in the buffer
+            break;
+        }
         if (twai_hal_read_rx_buffer_and_clear(&p_twai_obj->hal, &frame)) {
             //Valid frame copied from RX buffer
             if (xQueueSendFromISR(p_twai_obj->rx_queue, &frame, task_woken) == pdTRUE) {
@@ -161,12 +185,12 @@ static inline void twai_handle_rx_buffer_frames(twai_obj_t *p_twai_obj, BaseType
     }
     //All remaining frames are treated as overrun. Clear them all
     if (overrun) {
+        my_msg_count=twai_ll_get_rx_msg_count(p_twai_obj->hal.dev);
         p_twai_obj->rx_overrun_count += twai_hal_clear_rx_fifo_overrun(&p_twai_obj->hal);
         twai_alert_handler(p_twai_obj, TWAI_ALERT_RX_FIFO_OVERRUN, alert_req);
     }
 #endif  //SOC_TWAI_SUPPORTS_RX_STATUS
 }
-
 static inline void twai_handle_tx_buffer_frame(twai_obj_t *p_twai_obj, BaseType_t *task_woken, int *alert_req)
 {
     //Handle previously transmitted frame
@@ -176,7 +200,10 @@ static inline void twai_handle_tx_buffer_frame(twai_obj_t *p_twai_obj, BaseType_
         p_twai_obj->tx_failed_count++;
         twai_alert_handler(p_twai_obj, TWAI_ALERT_TX_FAILED, alert_req);
     }
-
+    if (p_twai_obj->tx_msg_count==0) {
+        my_tx_error=1;
+        return;
+    }
     //Update TX message count
     p_twai_obj->tx_msg_count--;
     assert(p_twai_obj->tx_msg_count >= 0);      //Sanity check
@@ -194,6 +221,20 @@ static inline void twai_handle_tx_buffer_frame(twai_obj_t *p_twai_obj, BaseType_
         //No more frames to transmit
         twai_alert_handler(p_twai_obj, TWAI_ALERT_TX_IDLE, alert_req);
     }
+}
+
+void twai_driver_reset(void)
+{
+    // the handle-less driver API only support one TWAI controller, i.e. the g_twai_objs[0]
+    portENTER_CRITICAL_ISR(&g_twai_objs[0]->spinlock);
+
+    twai_hal_prepare_for_reset(&g_twai_objs[0]->hal);
+    TWAI_RCC_ATOMIC() {
+        twai_ll_reset_register(g_twai_objs[0]->controller_id);
+    }
+    twai_hal_recover_from_reset(&g_twai_objs[0]->hal);
+    portEXIT_CRITICAL_ISR(&g_twai_objs[0]->spinlock);
+
 }
 
 static void twai_intr_handler_main(void *arg)

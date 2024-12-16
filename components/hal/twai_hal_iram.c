@@ -56,6 +56,10 @@ static inline uint32_t twai_hal_decode_interrupt(twai_hal_context_t *hal_ctx)
             }
         }
     }
+    // //Overrun Interrupt
+    // if (interrupts & TWAI_LL_INTR_OV) {
+    //     TWAI_HAL_SET_BITS(events, TWAI_HAL_EVENT_RX_BUFF_FRAME);
+    // }
     //Receive Interrupt set whenever RX FIFO is not empty
     if (interrupts & TWAI_LL_INTR_RI) {
         TWAI_HAL_SET_BITS(events, TWAI_HAL_EVENT_RX_BUFF_FRAME);

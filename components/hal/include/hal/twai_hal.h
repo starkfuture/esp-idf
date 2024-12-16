@@ -176,7 +176,7 @@ static inline uint32_t twai_hal_get_rec(twai_hal_context_t *hal_ctx)
 __attribute__((always_inline))
 static inline uint32_t twai_hal_get_rx_msg_count(twai_hal_context_t *hal_ctx)
 {
-    return twai_ll_get_rx_msg_count((hal_ctx)->dev);
+    return twai_ll_get_rx_msg_count_real((hal_ctx)->dev);
 }
 
 /**
@@ -292,18 +292,19 @@ void twai_hal_set_tx_buffer_and_transmit(twai_hal_context_t *hal_ctx, twai_hal_f
 __attribute__((always_inline))
 static inline bool twai_hal_read_rx_buffer_and_clear(twai_hal_context_t *hal_ctx, twai_hal_frame_t *rx_frame)
 {
-#ifdef SOC_TWAI_SUPPORTS_RX_STATUS
-    if (twai_ll_get_status(hal_ctx->dev) & TWAI_LL_STATUS_MS) {
-        //Release the buffer for this particular overrun frame
-        twai_ll_set_cmd_release_rx_buffer(hal_ctx->dev);
-        return false;
-    }
-#else
-    if (twai_ll_get_status(hal_ctx->dev) & TWAI_LL_STATUS_DOS) {
-        //No need to release RX buffer as we'll be releaseing all RX frames in continuously later
-        return false;
-    }
-#endif
+// #ifdef SOC_TWAI_SUPPORTS_RX_STATUS
+//     if (twai_ll_get_status(hal_ctx->dev) & TWAI_LL_STATUS_MS) {
+//         //Release the buffer for this particular overrun frame
+//         twai_ll_set_cmd_release_rx_buffer(hal_ctx->dev);
+//         return false;
+//     }
+// #else
+//     if (twai_ll_get_status(hal_ctx->dev) & TWAI_LL_STATUS_DOS) {
+//         //No need to release RX buffer as we'll be releaseing all RX frames in continuously later
+//         return false;
+//     }
+// #endif
+//
     twai_ll_get_rx_buffer(hal_ctx->dev, rx_frame);
     twai_ll_set_cmd_release_rx_buffer(hal_ctx->dev);
     return true;
