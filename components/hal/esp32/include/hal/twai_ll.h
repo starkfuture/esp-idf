@@ -724,20 +724,15 @@ static inline void twai_ll_set_tx_buffer(twai_dev_t *hw, twai_ll_frame_buffer_t 
  * @note Call twai_ll_parse_frame_buffer() to parse the formatted frame
  */
 
-    extern volatile int my_error;
     extern volatile uint32_t my_msg_count;
     extern volatile uint32_t my_msg_times;
     extern volatile uint32_t my_tx_error;
 __attribute__((always_inline))
 static inline void twai_ll_get_rx_buffer(twai_dev_t *hw, twai_ll_frame_buffer_t *rx_frame)
 {
-
     //Copy RX buffer registers into frame
     for (int i = 0; i < 13; i++) {
         rx_frame->bytes[i] =  HAL_FORCE_READ_U32_REG_FIELD(hw->tx_rx_buffer[i], byte);
-    }
-    if (rx_frame->dlc>8) {
-        my_error=my_msg_count;
     }
 }
 
