@@ -2446,6 +2446,8 @@ void l2ble_update_att_acl_pkt_num(UINT8 type, tl2c_buff_param_t *param)
     case L2CA_BUFF_FREE:{
         xSemaphoreTake(buff_semaphore, portMAX_DELAY);
         // Do nothing
+        btc_buf = 0;
+        btu_buf = 0;
         xSemaphoreGive(buff_semaphore);
         break;
     }
