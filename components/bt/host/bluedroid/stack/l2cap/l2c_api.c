@@ -2420,6 +2420,9 @@ void l2ble_update_att_acl_pkt_num(UINT8 type, tl2c_buff_param_t *param)
                 *(param->get_num) = att_max_num - att_acl_pkt_num - (btc_buf + btu_buf);
             }
         }
+        if (*(param->get_num)==0) {
+            L2CAP_TRACE_ERROR("att_acl_pkt_num=%d, att_max_num=%d, btc_buf=%d, btu_buf=%d",att_acl_pkt_num,att_max_num,btc_buf,btu_buf);
+        }
         xSemaphoreGive(buff_semaphore);
         break;
     }

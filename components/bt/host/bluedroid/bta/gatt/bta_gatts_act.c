@@ -689,6 +689,8 @@ void bta_gatts_indicate_handle (tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA *p_msg)
                                                       p_msg->api_indicate.len,
                                                       p_msg->api_indicate.value);
             } else {
+                L2CAP_TRACE_ERROR("L2CA_DECREASE_BTU_NUM %s", __func__);
+
                 l2ble_update_att_acl_pkt_num(L2CA_DECREASE_BTU_NUM, NULL);
                 status = GATTS_HandleValueNotification (p_msg->api_indicate.hdr.layer_specific,
                                                         p_msg->api_indicate.attr_id,

@@ -22,6 +22,8 @@
  *
  ******************************************************************************/
 
+#include <l2c_int.h>
+
 #include "common/bt_target.h"
 
 #if defined(GATTS_INCLUDED) && (GATTS_INCLUDED == TRUE)
@@ -429,6 +431,7 @@ void BTA_GATTS_HandleValueIndication (UINT16 conn_id, UINT16 attr_id, UINT16 dat
         }
         if(need_confirm == false){
             l2ble_update_att_acl_pkt_num(L2CA_DECREASE_BTC_NUM, NULL);
+            L2CAP_TRACE_ERROR("L2CA_ADD_BTU_NUM %s", __func__);
             l2ble_update_att_acl_pkt_num(L2CA_ADD_BTU_NUM, NULL);
         }
         bta_sys_sendmsg(p_buf);
