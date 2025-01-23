@@ -688,7 +688,7 @@ void BTA_GATTC_WriteCharValue ( UINT16 conn_id,
         }
         if(write_type == BTA_GATTC_TYPE_WRITE_NO_RSP){
             l2ble_update_att_acl_pkt_num(L2CA_DECREASE_BTC_NUM, NULL);
-            L2CAP_TRACE_ERROR("L2CA_ADD_BTU_NUM %s", __func__);
+            // L2CAP_TRACE_ERROR("L2CA_ADD_BTU_NUM %s", __func__);
             l2ble_update_att_acl_pkt_num(L2CA_ADD_BTU_NUM, NULL);
         }
         bta_sys_sendmsg(p_buf);
@@ -739,7 +739,7 @@ void BTA_GATTC_WriteCharDescr (UINT16 conn_id,
         }
         if(write_type == BTA_GATTC_TYPE_WRITE_NO_RSP){
             l2ble_update_att_acl_pkt_num(L2CA_DECREASE_BTC_NUM, NULL);
-            L2CAP_TRACE_ERROR("L2CA_ADD_BTU_NUM %s", __func__);
+            // L2CAP_TRACE_ERROR("L2CA_ADD_BTU_NUM %s", __func__);
             l2ble_update_att_acl_pkt_num(L2CA_ADD_BTU_NUM, NULL);
         }
         bta_sys_sendmsg(p_buf);
