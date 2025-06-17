@@ -548,7 +548,7 @@ esp_err_t twai_clear_receive_queue_v2(twai_handle_t handle);
 
 
 
-#ifdef TWAI_FIXES
+#ifdef CONFIG_TWAI_FIXES
  void twai_driver_reset(void);
 #endif
 

@@ -117,14 +117,14 @@ static void twai_alert_handler(twai_obj_t *p_twai_obj, uint32_t alert_code, int 
 #endif  //CONFIG_TWAI_ISR_IN_IRAM
     }
 }
-#ifdef TWAI_FIXES
+#ifdef CONFIG_TWAI_FIXES
 volatile uint32_t my_msg_count=0;
 volatile uint32_t my_msg_times=0;
 volatile uint32_t my_tx_error=0;
 #endif
 static inline void twai_handle_rx_buffer_frames(twai_obj_t *p_twai_obj, BaseType_t *task_woken, int *alert_req)
 {
-#ifdef TWAI_FIXES
+#ifdef CONFIG_TWAI_FIXES
     my_msg_times++;
 #endif
 #ifdef SOC_TWAI_SUPPORTS_RX_STATUS
@@ -151,7 +151,7 @@ static inline void twai_handle_rx_buffer_frames(twai_obj_t *p_twai_obj, BaseType
 
     bool overrun = false;
     //Clear all valid RX frames
-    #ifdef TWAI_FIXES
+    #ifdef CONFIG_TWAI_FIXES
 // #ifdef SOC_TWAI_SUPPORTS_RX_STATUS
 //     if (twai_ll_get_status(hal_ctx->dev) & TWAI_LL_STATUS_MS) {
 //         //Release the buffer for this particular overrun frame
@@ -169,7 +169,7 @@ static inline void twai_handle_rx_buffer_frames(twai_obj_t *p_twai_obj, BaseType
 
     for (int i = 0; i < msg_count; i++) {
         twai_hal_frame_t frame;
-        #ifdef TWAI_FIXES
+        #ifdef CONFIG_TWAI_FIXES
 
         if ((twai_ll_get_status(p_twai_obj->hal.dev) & TWAI_LL_STATUS_RBS) ==0) {
             // There's no new message in the buffer
@@ -192,7 +192,7 @@ static inline void twai_handle_rx_buffer_frames(twai_obj_t *p_twai_obj, BaseType
     }
     //All remaining frames are treated as overrun. Clear them all
     if (overrun) {
-        #ifdef TWAI_FIXES
+        #ifdef CONFIG_TWAI_FIXES
         my_msg_count=twai_ll_get_rx_msg_count(p_twai_obj->hal.dev);
         #endif
         p_twai_obj->rx_overrun_count += twai_hal_clear_rx_fifo_overrun(&p_twai_obj->hal);
@@ -209,7 +209,7 @@ static inline void twai_handle_tx_buffer_frame(twai_obj_t *p_twai_obj, BaseType_
         p_twai_obj->tx_failed_count++;
         twai_alert_handler(p_twai_obj, TWAI_ALERT_TX_FAILED, alert_req);
     }
-    #ifdef TWAI_FIXES
+    #ifdef CONFIG_TWAI_FIXES
     if (p_twai_obj->tx_msg_count==0) {
         my_tx_error=1;
         return;
@@ -233,8 +233,7 @@ static inline void twai_handle_tx_buffer_frame(twai_obj_t *p_twai_obj, BaseType_
         twai_alert_handler(p_twai_obj, TWAI_ALERT_TX_IDLE, alert_req);
     }
 }
-
-#ifdef TWAI_FIXES
+#ifdef CONFIG_TWAI_FIXES
 void twai_driver_reset(void)
 {
     // the handle-less driver API only support one TWAI controller, i.e. the g_twai_objs[0]

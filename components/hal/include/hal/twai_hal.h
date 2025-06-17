@@ -176,11 +176,12 @@ static inline uint32_t twai_hal_get_rec(twai_hal_context_t *hal_ctx)
 __attribute__((always_inline))
 static inline uint32_t twai_hal_get_rx_msg_count(twai_hal_context_t *hal_ctx)
 {
-    #ifdef TWAI_FIXES
+#ifdef CONFIG_TWAI_FIXES
     return twai_ll_get_rx_msg_count_real((hal_ctx)->dev);
-    #else
+#else
     return twai_ll_get_rx_msg_count((hal_ctx)->dev);
-    #endif
+#endif
+
 }
 
 /**
@@ -296,7 +297,7 @@ void twai_hal_set_tx_buffer_and_transmit(twai_hal_context_t *hal_ctx, twai_hal_f
 __attribute__((always_inline))
 static inline bool twai_hal_read_rx_buffer_and_clear(twai_hal_context_t *hal_ctx, twai_hal_frame_t *rx_frame)
 {
-#ifndef TWAI_FIXES
+#ifndef CONFIG_TWAI_FIXES
 #ifdef SOC_TWAI_SUPPORTS_RX_STATUS
     if (twai_ll_get_status(hal_ctx->dev) & TWAI_LL_STATUS_MS) {
         //Release the buffer for this particular overrun frame

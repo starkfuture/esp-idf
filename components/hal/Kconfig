@@ -112,4 +112,8 @@ menu "Hardware Abstraction Layer (HAL) and Low Level (LL)"
             This countermeasure masks the real ECDSA sign operation
             under dummy sign operations to add randomness in the generated power signature.
 
+    config TWAI_FIXES
+        bool "Some fixes for TWAI"
+        depends on IDF_TARGET_ESP32
+        default "n"
 endmenu
