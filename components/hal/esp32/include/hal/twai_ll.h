@@ -838,6 +838,24 @@ static inline uint32_t twai_ll_get_rx_msg_count(twai_dev_t *hw)
     return hw->rx_message_counter_reg.val;
 }
 
+#ifdef CONFIG_TWAI_FIXES
+/**
+ * @brief   Get RX Message Counter from the RMC bitfield only (Stark fork)
+ *
+ * Unlike twai_ll_get_rx_msg_count() which reads the whole register word,
+ * this reads only the RMC[6:0] field, masking the reserved upper bits which
+ * can carry garbage on the ESP32 when the RX FIFO is corrupted.
+ *
+ * @param hw Start address of the TWAI registers
+ * @return RX Message Counter (masked)
+ */
+__attribute__((always_inline))
+static inline uint32_t twai_ll_get_rx_msg_count_real(twai_dev_t *hw)
+{
+    return hw->rx_message_counter_reg.rmc;
+}
+#endif // CONFIG_TWAI_FIXES
+
 /* ------------------------- Clock Divider Register ------------------------- */
 
 /**

@@ -552,6 +552,17 @@ esp_err_t twai_clear_receive_queue(void);
  */
 esp_err_t twai_clear_receive_queue_v2(twai_handle_t handle);
 
+#ifdef CONFIG_TWAI_FIXES
+/**
+ * @brief   Stark fork: reset and recover the TWAI controller in place (controller 0)
+ *
+ * Forces a peripheral reset-and-recover on the handle-less driver without
+ * uninstalling it. Intended for application-level recovery (e.g. on a CAN
+ * communication timeout). Only available when CONFIG_TWAI_FIXES is enabled.
+ */
+void twai_driver_reset(void);
+#endif // CONFIG_TWAI_FIXES
+
 #ifdef __cplusplus
 }
 #endif

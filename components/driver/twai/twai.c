@@ -159,9 +159,24 @@ static inline void twai_handle_rx_buffer_frames(twai_obj_t *p_twai_obj, BaseType
 #else   //SOC_TWAI_SUPPORTS_RX_STATUS
     uint32_t msg_count = twai_hal_get_rx_msg_count(p_twai_obj->hal);
     bool overrun = false;
+#ifdef CONFIG_TWAI_FIXES
+    // Stark fork: an implausibly high RX message count indicates FIFO corruption.
+    // Treat it as an overrun and let the overrun path below flush the FIFO.
+    if (msg_count > 4) {
+        msg_count = 0;
+        overrun = true;
+    }
+#endif
     //Clear all valid RX frames
     for (int i = 0; i < msg_count; i++) {
         twai_hal_frame_t frame;
+#ifdef CONFIG_TWAI_FIXES
+        // Stark fork: stop early if the hardware RX buffer status reports no
+        // message actually present, even though the counter claimed one.
+        if ((twai_ll_get_status(p_twai_obj->hal->dev) & TWAI_LL_STATUS_RBS) == 0) {
+            break;
+        }
+#endif
         if (twai_hal_read_rx_fifo(p_twai_obj->hal, &frame)) {
             //Valid frame copied from RX buffer
             if (xQueueSendFromISR(p_twai_obj->rx_queue, &frame, task_woken) == pdTRUE) {
@@ -194,6 +209,14 @@ static inline void twai_handle_tx_buffer_frame(twai_obj_t *p_twai_obj, bool tx_s
         twai_alert_handler(p_twai_obj, TWAI_ALERT_TX_FAILED, alert_req);
     }
 
+#ifdef CONFIG_TWAI_FIXES
+    // Stark fork: guard against a spurious TX-complete interrupt with no frame
+    // outstanding, which would underflow tx_msg_count and trip the assert below
+    // (assertions are enabled at level 2 in this build).
+    if (p_twai_obj->tx_msg_count == 0) {
+        return;
+    }
+#endif
     //Update TX message count
     p_twai_obj->tx_msg_count--;
     assert(p_twai_obj->tx_msg_count >= 0);      //Sanity check
@@ -214,6 +237,30 @@ static inline void twai_handle_tx_buffer_frame(twai_obj_t *p_twai_obj, bool tx_s
         twai_alert_handler(p_twai_obj, TWAI_ALERT_TX_IDLE, alert_req);
     }
 }
+
+#ifdef CONFIG_TWAI_FIXES
+/**
+ * @brief Stark fork: app-callable peripheral reset for the handle-less driver.
+ *
+ * Used by the application on a CAN communication timeout to force a controller
+ * reset-and-recover in place, without uninstalling the driver. Mirrors the
+ * errata reset sequence performed in the ISR (twai_intr_handler_main). Operates
+ * on the handle-less controller 0 (g_twai_objs[0]).
+ *
+ * Requires CONFIG_TWAI_ERRATA_FIX_RX_* (errata context) to be enabled, which is
+ * the case in the docking build.
+ */
+void twai_driver_reset(void)
+{
+    portENTER_CRITICAL_ISR(&g_twai_objs[0]->spinlock);
+    twai_hal_prepare_for_reset(g_twai_objs[0]->hal);
+    TWAI_RCC_ATOMIC() {
+        twai_ll_reset_register(g_twai_objs[0]->controller_id);
+    }
+    twai_hal_recover_from_reset(g_twai_objs[0]->hal);
+    portEXIT_CRITICAL_ISR(&g_twai_objs[0]->spinlock);
+}
+#endif // CONFIG_TWAI_FIXES
 
 static void twai_intr_handler_main(void *arg)
 {

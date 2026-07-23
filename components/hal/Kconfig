@@ -101,5 +101,17 @@ menu "Hardware Abstraction Layer (HAL) and Low Level (LL)"
             under dummy sign operations to add randomness in the generated power signature.
             This countermeasure is only necessary for ESP32-H2 < v1.2.
 
+    config TWAI_FIXES
+        bool "Stark: extra ESP32 TWAI RX/TX robustness workarounds"
+        depends on IDF_TARGET_ESP32
+        default n
+        help
+            Stark fork addition. Enables extra ESP32-classic TWAI workarounds that
+            stack on top of the upstream CONFIG_TWAI_ERRATA_FIX_* handling:
+            a masked (.rmc) RX message-count read, an RX-buffer-status guard in
+            the RX read loop, an early-overrun heuristic, a TX-underflow guard,
+            and the app-callable twai_driver_reset(). Requires the upstream
+            CONFIG_TWAI_ERRATA_FIX_RX_* options (for the reset infrastructure /
+            errata context) to remain enabled.
 
 endmenu

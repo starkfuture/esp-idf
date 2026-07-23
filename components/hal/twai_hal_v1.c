@@ -418,7 +418,13 @@ void twai_hal_set_tx_buffer_and_transmit(twai_hal_context_t *hal_ctx, twai_hal_f
 
 uint32_t twai_hal_get_rx_msg_count(twai_hal_context_t *hal_ctx)
 {
+#ifdef CONFIG_TWAI_FIXES
+    // Stark fork: use the masked RMC-field read for the driver RX path. The
+    // upstream errata threshold check keeps using the raw twai_ll_get_rx_msg_count().
+    return twai_ll_get_rx_msg_count_real((hal_ctx)->dev);
+#else
     return twai_ll_get_rx_msg_count((hal_ctx)->dev);
+#endif
 }
 
 bool twai_hal_read_rx_fifo(twai_hal_context_t *hal_ctx, twai_hal_frame_t *rx_frame)
