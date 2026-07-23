@@ -429,6 +429,12 @@ uint32_t twai_hal_get_rx_msg_count(twai_hal_context_t *hal_ctx)
 
 bool twai_hal_read_rx_fifo(twai_hal_context_t *hal_ctx, twai_hal_frame_t *rx_frame)
 {
+    // Stark fork: under CONFIG_TWAI_FIXES the overrun-status early-return is
+    // disabled on ESP32. Overruns are instead handled by the driver's masked
+    // msg_count>4 heuristic and the RBS read-loop guard (see twai.c), matching
+    // the v5.3 behaviour. Without this gate a DOS-set-but-still-valid frame
+    // would be dropped and trigger a full-FIFO flush.
+#ifndef CONFIG_TWAI_FIXES
 #ifdef SOC_TWAI_SUPPORTS_RX_STATUS
     if (twai_ll_get_status(hal_ctx->dev) & TWAI_LL_STATUS_MS) {
         //Release the buffer for this particular overrun frame
@@ -441,6 +447,7 @@ bool twai_hal_read_rx_fifo(twai_hal_context_t *hal_ctx, twai_hal_frame_t *rx_fra
         return false;
     }
 #endif
+#endif // CONFIG_TWAI_FIXES
     twai_ll_get_rx_buffer(hal_ctx->dev, rx_frame);
     twai_ll_set_cmd_release_rx_buffer(hal_ctx->dev);
     return true;

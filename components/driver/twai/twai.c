@@ -247,18 +247,26 @@ static inline void twai_handle_tx_buffer_frame(twai_obj_t *p_twai_obj, bool tx_s
  * errata reset sequence performed in the ISR (twai_intr_handler_main). Operates
  * on the handle-less controller 0 (g_twai_objs[0]).
  *
- * Requires CONFIG_TWAI_ERRATA_FIX_RX_* (errata context) to be enabled, which is
- * the case in the docking build.
+ * Meant to be used alongside the upstream CONFIG_TWAI_ERRATA_FIX_RX_* handling
+ * (which provides the errata detection this reset complements). The errata
+ * context it relies on is allocated whenever the target is ESP32, so this is
+ * memory-safe regardless of those options.
  */
 void twai_driver_reset(void)
 {
-    portENTER_CRITICAL_ISR(&g_twai_objs[0]->spinlock);
+    // Hardening beyond the v5.3 original: guard against being called before
+    // twai_driver_install() / after twai_driver_uninstall(), when the
+    // handle-less object is NULL. Cannot affect the installed-driver path.
+    if (g_twai_objs[0] == NULL) {
+        return;
+    }
+    portENTER_CRITICAL(&g_twai_objs[0]->spinlock);
     twai_hal_prepare_for_reset(g_twai_objs[0]->hal);
     TWAI_RCC_ATOMIC() {
         twai_ll_reset_register(g_twai_objs[0]->controller_id);
     }
     twai_hal_recover_from_reset(g_twai_objs[0]->hal);
-    portEXIT_CRITICAL_ISR(&g_twai_objs[0]->spinlock);
+    portEXIT_CRITICAL(&g_twai_objs[0]->spinlock);
 }
 #endif // CONFIG_TWAI_FIXES
 

@@ -110,8 +110,8 @@ menu "Hardware Abstraction Layer (HAL) and Low Level (LL)"
             stack on top of the upstream CONFIG_TWAI_ERRATA_FIX_* handling:
             a masked (.rmc) RX message-count read, an RX-buffer-status guard in
             the RX read loop, an early-overrun heuristic, a TX-underflow guard,
-            and the app-callable twai_driver_reset(). Requires the upstream
-            CONFIG_TWAI_ERRATA_FIX_RX_* options (for the reset infrastructure /
-            errata context) to remain enabled.
+            and the app-callable twai_driver_reset(). Intended to be enabled
+            together with the upstream CONFIG_TWAI_ERRATA_FIX_RX_* options, which
+            provide the errata detection this complements.
 
 endmenu
