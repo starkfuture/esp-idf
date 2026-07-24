@@ -104,14 +104,20 @@ menu "Hardware Abstraction Layer (HAL) and Low Level (LL)"
     config TWAI_FIXES
         bool "Stark: extra ESP32 TWAI RX/TX robustness workarounds"
         depends on IDF_TARGET_ESP32
+        select TWAI_ERRATA_FIX_RX_FIFO_CORRUPT
+        select TWAI_ERRATA_FIX_RX_FRAME_INVALID
         default n
         help
             Stark fork addition. Enables extra ESP32-classic TWAI workarounds that
             stack on top of the upstream CONFIG_TWAI_ERRATA_FIX_* handling:
             a masked (.rmc) RX message-count read, an RX-buffer-status guard in
             the RX read loop, an early-overrun heuristic, a TX-underflow guard,
-            and the app-callable twai_driver_reset(). Intended to be enabled
-            together with the upstream CONFIG_TWAI_ERRATA_FIX_RX_* options, which
-            provide the errata detection this complements.
+            and the app-callable twai_driver_reset().
+
+            SAFETY: twai_driver_reset() -> twai_hal_recover_from_reset() may
+            retry errata_ctx->tx_frame_save, which is only populated when an RX
+            errata fix is enabled. This option therefore selects the two RX
+            errata fixes so the unsafe combination (TWAI_FIXES on, errata off ->
+            retransmit of an unpopulated TX frame) cannot be configured.
 
 endmenu
